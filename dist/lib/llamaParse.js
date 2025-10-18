@@ -1,45 +1,6 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseWithLlamaParse = parseWithLlamaParse;
-exports.parseToMarkdown = parseToMarkdown;
-exports.parseToText = parseToText;
-exports.parseToRawJson = parseToRawJson;
-const child_process_1 = require("child_process");
-const fs_1 = require("fs");
-const path = __importStar(require("path"));
+import { spawn } from "child_process";
+import { promises as fs } from "fs";
+import * as path from "path";
 function ensureApiKey() {
     const apiKey = process.env.LLAMA_CLOUD_API_KEY;
     if (!apiKey || apiKey.trim().length === 0) {
@@ -69,9 +30,9 @@ function buildCliArgs(inputFilePath, outputFilePath, options) {
 }
 async function ensureDirectoryForFile(filePath) {
     const dir = path.dirname(filePath);
-    await fs_1.promises.mkdir(dir, { recursive: true });
+    await fs.mkdir(dir, { recursive: true });
 }
-async function parseWithLlamaParse(inputFilePath, options) {
+export async function parseWithLlamaParse(inputFilePath, options) {
     ensureApiKey();
     const outputFilePath = options.outputFilePath ?? getDefaultOutputPath(inputFilePath, options.resultType);
     await ensureDirectoryForFile(outputFilePath);
@@ -79,7 +40,7 @@ async function parseWithLlamaParse(inputFilePath, options) {
     const stdoutChunks = [];
     const stderrChunks = [];
     await new Promise((resolve, reject) => {
-        const child = (0, child_process_1.spawn)("llama-parse", cliArgs, {
+        const child = spawn("llama-parse", cliArgs, {
             env: { ...process.env },
             stdio: ["ignore", "pipe", "pipe"],
         });
@@ -100,7 +61,7 @@ async function parseWithLlamaParse(inputFilePath, options) {
     });
     const stdout = Buffer.concat(stdoutChunks).toString("utf8");
     const stderr = Buffer.concat(stderrChunks).toString("utf8");
-    const outputContent = await fs_1.promises.readFile(outputFilePath, "utf8");
+    const outputContent = await fs.readFile(outputFilePath, "utf8");
     return {
         inputFilePath,
         outputFilePath,
@@ -110,13 +71,13 @@ async function parseWithLlamaParse(inputFilePath, options) {
         outputContent,
     };
 }
-async function parseToMarkdown(inputFilePath) {
+export async function parseToMarkdown(inputFilePath) {
     return parseWithLlamaParse(inputFilePath, { resultType: "markdown" });
 }
-async function parseToText(inputFilePath) {
+export async function parseToText(inputFilePath) {
     return parseWithLlamaParse(inputFilePath, { resultType: "text" });
 }
-async function parseToRawJson(inputFilePath) {
+export async function parseToRawJson(inputFilePath) {
     return parseWithLlamaParse(inputFilePath, { resultType: "raw-json" });
 }
 //# sourceMappingURL=llamaParse.js.map

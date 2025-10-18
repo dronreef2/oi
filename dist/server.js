@@ -1,14 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.handlerForYourRoute = handlerForYourRoute;
-require("dotenv/config");
-const opik_1 = require("./lib/opik");
-const llamaParse_1 = require("./lib/llamaParse");
+import "dotenv/config";
+import { withTrace } from "./lib/opik.js";
+import { parseToMarkdown, parseToRawJson, parseToText } from "./lib/llamaParse.js";
+import { pathToFileURL } from "node:url";
 async function generateAnswer(prompt) {
     return `Echo: ${prompt}`;
 }
-async function handlerForYourRoute(prompt) {
-    return (0, opik_1.withTrace)("llamaindex.query", async (span) => {
+export async function handlerForYourRoute(prompt) {
+    return withTrace("llamaindex.query", async (span) => {
         span.setAttribute("llm.framework", "llamaindex");
         span.setAttribute("runtime", "node");
         span.setAttribute("input.prompt.length", prompt?.length ?? 0);
@@ -38,24 +36,27 @@ async function main(argv) {
             printUsageAndExit();
         }
         if (typeNormalized === "markdown") {
-            const result = await (0, llamaParse_1.parseToMarkdown)(fileArg);
+            const result = await parseToMarkdown(fileArg);
             console.log(result.outputFilePath);
             return;
         }
         if (typeNormalized === "text") {
-            const result = await (0, llamaParse_1.parseToText)(fileArg);
+            const result = await parseToText(fileArg);
             console.log(result.outputFilePath);
             return;
         }
         // json
-        const result = await (0, llamaParse_1.parseToRawJson)(fileArg);
+        const result = await parseToRawJson(fileArg);
         console.log(result.outputFilePath);
         return;
     }
     printUsageAndExit();
 }
 // ESM entrypoint
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isDirectRun = process.argv[1]
+    ? pathToFileURL(process.argv[1]).href === import.meta.url
+    : false;
+if (isDirectRun) {
     main(process.argv.slice(2)).catch((err) => {
         console.error(err);
         process.exit(1);
