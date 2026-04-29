@@ -42,3 +42,35 @@ Parsed files are written into `.llamaparse-output/`.
 ### Notes
 - The integration uses the LlamaParse CLI under the hood; no Node SDK is required.
 - Ensure `LLAMA_CLOUD_API_KEY` is present in your environment when invoking the CLI.
+
+---
+
+## Giga Token LangChain Client
+
+`giga_token_client.py` is a Python script that sends a chat message to the [Giga Token](https://api.giga-token.com) OpenAI-compatible API using LangChain's `ChatOpenAI`.
+
+### Prerequisites
+
+- Python 3.9+
+- Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Configuration
+
+Copy `.env.example` to `.env` and set the Giga Token variables:
+
+```env
+GIGA_TOKEN_API_KEY=your-api-key
+GIGA_TOKEN_MODEL=glm-4.5:106b   # optional, this is the default
+```
+
+### Running
+
+```bash
+python giga_token_client.py
+```
+
+The script sends `"Hello. Reply in one short sentence."` to the model and prints the response.
